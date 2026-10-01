@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drex Decision Gateway</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Drex Gateway <span class="badge">v0.1</span></h1>
+      <p>Powered by Drex • System One</p>
+    </div>
+    <ul class="nav-links">
+      <li><button class="active" data-tab="overview">⚡ Overview & ROI</button></li>
+      <li><button data-tab="decisions">🎯 Live Decisions</button></li>
+      <li><button data-tab="trace">🔍 Decision Trace</button></li>
+      <li><button data-tab="demo">🤖 Coding Agent Demo</button></li>
+      <li><button data-tab="benchmarks">📊 Benchmarks & Calibration</button></li>
+      <li><button data-tab="health">🛡️ Provider Health</button></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div id="provider-status-pill" class="status-pill">
+        <span class="dot"></span> Connecting...
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+        <h2 class="topbar-title">System Overview & Decision Throughput</h2>
+      </div>
+      <div class="topbar-actions">
+        <a href="/docs" target="_blank" class="btn btn-secondary">OpenAPI Docs</a>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <!-- 1. OVERVIEW TAB -->
+      <section id="view-overview" class="tab-view">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="title">Total Drex Decisions</div>
+            <div id="metric-total-decisions" class="value">0</div>
+            <div class="subtext">Structured micro-decisions</div>
+          </div>
+          <div class="metric-card">
+            <div class="title">Expensive Calls Avoided</div>
+            <div id="metric-calls-avoided" class="value" style="color: var(--accent-green);">0</div>
+            <div class="subtext">Saved generative invocations</div>
+          </div>
+          <div class="metric-card">
+            <div class="title">Escalation Rate</div>
+            <div id="metric-escalation-rate" class="value" style="color: var(--accent-amber);">0.0%</div>
+            <div class="subtext">Required higher-tier review</div>
+          </div>
+          <div class="metric-card">
+            <div class="title">Drex Latency P50</div>
+            <div id="metric-latency-p50" class="value">N/A</div>
+            <div class="subtext">Measured roundtrip ms</div>
+          </div>
+          <div class="metric-card">
+            <div class="title">Gateway Overhead P50</div>
+            <div id="metric-overhead-p50" class="value" style="color: var(--accent-cyan);">N/A</div>
+            <div class="subtext">Local processing overhead</div>
+          </div>
+          <div class="metric-card">
+            <div class="title">Outcome Success Rate</div>
+            <div id="metric-success-rate" class="value">N/A</div>
+            <div class="subtext">Feedback correlation</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Decision Volume by Type</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Coding Agent Library</span>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Decision Type</th>
+                  <th>Total Decisions</th>
+                  <th>Share</th>
+                </tr>
+              </thead>
+              <tbody id="types-table-body">
+                <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. LIVE DECISIONS TAB -->
+      <section id="view-decisions" class="tab-view" style="display: none;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Decision Stream</h3>
+            <div style="display: flex; gap: 8px;">
+              <select id="filter-disposition" onchange="loadDecisions()" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px;">
+                <option value="">All Dispositions</option>
+                <option value="ACCEPT">ACCEPT</option>
+                <option value="ESCALATE">ESCALATE</option>
+                <option value="ABSTAIN">ABSTAIN</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadDecisions()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Disposition</th>
+                  <th>Decision Type</th>
+                  <th>Selected & Confidence</th>
+                  <th>Probability Distribution</th>
+                  <th>Latency</th>
+                  <th>Provider</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="decisions-table-body">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading decisions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. DECISION TRACE TAB -->
+      <section id="view-trace" class="tab-view" style="display: none;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Trace Provenance Inspector</h3>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="trace-id-input" placeholder="Enter trace_id (e.g. demo_trace_...)" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; width: 280px; font-family: var(--font-mono); font-size: 0.85rem;">
+              <button class="btn btn-primary" onclick="loadTrace(document.getElementById('trace-id-input').value.trim())">Inspect Trace</button>
+            </div>
+          </div>
+
+          <div id="trace-container">
+            <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+              <div class="metric-card" style="padding: 14px;">
+                <div class="title">Trace ID</div>
+                <div id="trace-header-id" style="font-size: 0.95rem; font-family: var(--font-mono); margin-top: 4px; overflow: hidden; text-overflow: ellipsis;">None</div>
+              </div>
+              <div class="metric-card" style="padding: 14px;">
+                <div class="title">Total Decisions</div>
+                <div id="trace-header-decisions" class="value" style="font-size: 1.4rem;">0</div>
+              </div>
+              <div class="metric-card" style="padding: 14px;">
+                <div class="title">Calls Avoided</div>
+                <div id="trace-header-avoided" class="value" style="font-size: 1.4rem; color: var(--accent-green);">0</div>
+              </div>
+              <div class="metric-card" style="padding: 14px;">
+                <div class="title">Total Latency</div>
+                <div id="trace-header-latency" class="value" style="font-size: 1.4rem;">0.0ms</div>
+              </div>
+            </div>
+
+            <h4 style="margin-bottom: 12px; font-size: 0.95rem;">Step-by-Step Decision Timeline</h4>
+            <div id="trace-timeline" class="timeline">
+              <p style="color: var(--text-muted); font-size: 0.85rem;">Select or enter a trace ID to inspect provenance.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. CODING AGENT DEMO TAB -->
+      <section id="view-demo" class="tab-view" style="display: none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">End-to-End Coding Agent Loop Demo</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                Simulates real-world coding task: Preflight ➔ Codex Coding ➔ Patch Triage ➔ Test Verifier ➔ Failure Triage ➔ Targeted Repair ➔ Pass.
+              </p>
+            </div>
+            <button id="btn-run-demo" class="btn btn-primary" onclick="runInteractiveDemo()">▶ Run Demonstration</button>
+          </div>
+
+          <div id="demo-summary-box" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 18px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <strong style="color: var(--accent-cyan); font-size: 1rem;">Execution Complete</strong>
+              <button id="demo-trace-link" class="btn btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;">View Full Trace Provenance ➔</button>
+            </div>
+            <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">DREX DECISIONS</span>
+                <div id="demo-total-decisions" style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-mono);">0</div>
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">CALLS AVOIDED</span>
+                <div id="demo-calls-avoided" style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent-green);">0</div>
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">TOTAL DREX LATENCY</span>
+                <div id="demo-drex-latency" style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-mono);">0ms</div>
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">FINAL VERIFIER STATUS</span>
+                <div id="demo-final-outcome" style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent-green);">PASS</div>
+              </div>
+            </div>
+          </div>
+
+          <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-muted);">Execution Pipeline Log</h4>
+          <div id="demo-steps-log">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Click 'Run Demonstration' above to trigger the simulated agent loop.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. BENCHMARKS TAB -->
+      <section id="view-benchmarks" class="tab-view" style="display: none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Benchmark Harness & Escalation Tradeoff</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                Calibrated probability accuracy and threshold simulation.
+              </p>
+            </div>
+            <button class="btn btn-secondary" onclick="loadBenchmarks()">↻ Refresh</button>
+          </div>
+
+          <h4 style="font-size: 0.95rem; margin-bottom: 12px;">Recent Benchmark Runs</h4>
+          <div id="benchmarks-history">
+            <p style="color: var(--text-muted);">Loading benchmark runs...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. PROVIDER HEALTH TAB -->
+      <section id="view-health" class="tab-view" style="display: none;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Active Provider & Model Aliases</h3>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Model Identifier</th>
+                  <th>Description</th>
+                  <th>Alias For</th>
+                  <th>Release Date</th>
+                </tr>
+              </thead>
+              <tbody id="models-table-body">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading models...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
