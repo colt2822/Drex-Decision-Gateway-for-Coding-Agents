@@ -8,14 +8,13 @@ version = "0.1.0"
 description = "A high-throughput, structured decision gateway for coding-agent loops powered by Drex."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Drex Decision Gateway Authors" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -36,6 +35,15 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.20.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents"
+Repository = "https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents.git"
+Issues = "https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents/issues"
+
+[tool.setuptools.package-data]
+"drex_gateway.benchmarks.datasets" = ["*.jsonl"]
+"drex_gateway.web.static" = ["*"]
 
 [project.scripts]
 drex-gateway = "drex_gateway.cli.main:cli"

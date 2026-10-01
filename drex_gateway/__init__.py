@@ -14,7 +14,10 @@ from drex_gateway.models import (
 )
 from drex_gateway.sdk.client import DrexGateway
 
+__version__ = "0.1.0"
+
 __all__ = [
+    "__version__",
     "DrexGateway",
     "DrexDecisionGateway",
     "GatewayConfig",

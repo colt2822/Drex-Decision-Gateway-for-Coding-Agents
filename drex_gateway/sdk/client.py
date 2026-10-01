@@ -27,6 +27,7 @@ class DrexGateway:
         base_url: str | None = None,
         *,
         api_key: str | None = None,
+        provider_mode: str | None = None,
         db_path: str = "drex_gateway.db",
         local_gateway: DrexDecisionGateway | None = None,
     ):
@@ -42,6 +43,8 @@ class DrexGateway:
                 if api_key:
                     # Allow programmatic credential injection
                     cfg.force_provider = "LIVE"
+                if provider_mode:
+                    cfg.force_provider = provider_mode.upper()
                 cfg.db_path = db_path
                 self._local = DrexDecisionGateway(config=cfg)
             self._client = None
@@ -178,6 +181,32 @@ class DrexGateway:
             resp = self._client.post("/v1/decide/rate", json=payload)
             resp.raise_for_status()
             return DecisionResult(**resp.json())
+
+    def batch_decide(
+        self,
+        state: str,
+        questions: dict[str, AnyQuestion],
+        *,
+        decision_types: dict[str, str] | None = None,
+        trace_id: str | None = None,
+        parent_decision_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> BatchDecisionResult:
+        """Execute multiple structured questions against a shared context in a single roundtrip."""
+        req = BatchDecisionRequest(
+            state=state,
+            questions=questions,
+            decision_types=decision_types or {},
+            trace_id=trace_id,
+            parent_decision_id=parent_decision_id,
+            metadata=metadata or {},
+        )
+        if self._local:
+            return asyncio.run(self._local.batch_decide(req))
+        else:
+            resp = self._client.post("/v1/decide/batch", json=req.model_dump())
+            resp.raise_for_status()
+            return BatchDecisionResult(**resp.json())
 
     def record_outcome(
         self,

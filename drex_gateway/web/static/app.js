@@ -307,7 +307,7 @@ async function loadBenchmarks() {
             <strong style="font-size: 0.95rem;">${escapeHtml(r.suite_name)} (${escapeHtml(r.provider)} / ${escapeHtml(r.model)})</strong>
             <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">${r.created_at}</span>
           </div>
-          <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+          <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 12px;">
             <div style="padding: 8px;">
               <span style="font-size: 0.75rem; color: var(--text-muted);">ACCURACY</span>
               <div style="font-size: 1.2rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent-green);">${r.accuracy ? (r.accuracy * 100).toFixed(1) + '%' : 'N/A'}</div>
@@ -325,6 +325,31 @@ async function loadBenchmarks() {
               <div style="font-size: 1.2rem; font-weight: 700; font-family: var(--font-mono);">${r.latency_p50 ? r.latency_p50.toFixed(1) + 'ms' : 'N/A'}</div>
             </div>
           </div>
+          ${(r.report && r.report.calibration_bins && r.report.calibration_bins.length > 0) ? `
+          <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">CALIBRATION BINS & PROBABILITY ACCURACY</div>
+            <table style="width: 100%; font-size: 0.8rem;">
+              <thead>
+                <tr>
+                  <th style="padding: 4px 8px;">Confidence Range</th>
+                  <th style="padding: 4px 8px;">Samples</th>
+                  <th style="padding: 4px 8px;">Empirical Accuracy</th>
+                  <th style="padding: 4px 8px;">Mean Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${r.report.calibration_bins.map(b => `
+                  <tr>
+                    <td style="padding: 4px 8px;"><code>${b.range}</code></td>
+                    <td style="padding: 4px 8px;">${b.count}</td>
+                    <td style="padding: 4px 8px; color: ${b.accuracy !== null ? 'var(--accent-green)' : 'var(--text-muted)'};">${b.accuracy !== null ? (b.accuracy * 100).toFixed(1) + '%' : 'N/A'}</td>
+                    <td style="padding: 4px 8px;">${b.confidence !== null ? (b.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
         </div>
       `;
     });

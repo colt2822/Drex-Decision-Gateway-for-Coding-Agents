@@ -68,7 +68,7 @@ class GatewayConfig(BaseModel):
             # Standard default user locations
             for cand in [
                 Path.home() / ".config" / "drex" / "api.key",
-                Path.home() / ".config" / "elyreon" / "secrets" / "drex.api-key",
+                Path.home() / ".drex" / "api.key",
             ]:
                 if cand.is_file():
                     key_path = str(cand)

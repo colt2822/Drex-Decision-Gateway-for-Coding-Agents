@@ -1,84 +1,130 @@
 # Drex Decision Gateway
 
-> **A high-throughput, calibrated decision primitive for coding-agent loops powered by Drex.**
+> **A probabilistic decision layer for coding agents, powered by Drex.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 [![Drex: System One](https://img.shields.io/badge/Drex-System%20One%20(v1.5)-cyan.svg)](https://drex.nace.ai)
+[![CI](https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents/actions/workflows/ci.yml/badge.svg)](https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents/actions/workflows/ci.yml)
 [![Tests: 33 Passed](https://img.shields.io/badge/Tests-33%20Passed-emerald.svg)](tests/)
 
 ---
 
-## What It Is
+## Why
 
-**Drex Decision Gateway** is a standalone, open-source decision layer designed to sit inside autonomous coding-agent execution loops.
+Coding agents repeatedly stall execution loops to make small, closed-form structured decisions:
+- *Which subsystem owns this defect?*
+- *Which verifier tier should validate this change?*
+- *Is this test failure an environment issue or product code bug?*
+- *Should we repair, replan, wait, or escalate to a human?*
+- *Is this patch ready for merge, or does it have obvious omissions?*
 
-Large generative models (Claude 3.5 Sonnet, GPT-4o, Codex) are expensive and high-latency. Yet autonomous agents repeatedly stop execution to ask small, closed-form structured questions:
-- *Which subsystem owns this stack trace?*
-- *Which verifier tier should run?*
-- *Is this an environment defect or an implementation bug?*
-- *Should we retry, repair, replan, or escalate?*
-- *Is this patch ready for full review, or does it have obvious omissions?*
+Treating these questions as prose-generation problems wastes millions of frontier generative tokens and adds 2,000ms–8,000ms of latency per question.
 
-Treating these questions as prose-generation problems wastes millions of generative tokens and stalls execution pipelines. **Drex Decision Gateway** turns [Drex](https://drex.nace.ai) into a fast, calibrated decision primitive that resolves these micro-decisions in milliseconds before, during, and after expensive generative calls.
+**Drex Decision Gateway** places fast, calibrated probabilistic decisions inside coding-agent loops so expensive generative models (such as Claude 3.5 Sonnet, GPT-4o, or Gemini 1.5 Pro) are invoked only where arbitrary code generation is genuinely required.
+
+```
+Traditional Agent Loop (Slow & Costly):
+Task ──► [LLM: 4.2s] ──► [LLM: 5.1s] ──► Code ──► Verifier Fail ──► [LLM: 6.0s] ──► 15.3s ($0.15+)
+
+Drex Gateway Loop (Fast & Targeted):
+Task ──► [Drex Preflight: 12ms] ──► [Targeted LLM Code: 4s] ──► [Drex Triage: 14ms] ──► 4.1s ($0.03)
+```
 
 ---
 
-## Why Decision Models Belong Inside Coding Agent Loops
+## What Drex Handles
 
-Generative models excel at writing complex code, designing algorithms, and generating diffs. They are poor tools for binary gating and discrete classification:
-1. **Uncalibrated Certainty**: Generative models hallucinate confidence and struggle to output reliable probability distributions.
-2. **Economic Waste**: Asking a 200k-context frontier model whether a test failure was caused by a missing dependency burns $0.03–$0.15 per question.
-3. **Execution Latency**: Generative LLM responses take 2,000–8,000ms. A typical multi-step agent loop making 15 decisions incurs over 45 seconds of idle latency. Drex decisions execute in **10–15ms**.
+Drex is a **System One typed decision model** that evaluates structured questions and returns calibrated probability distributions across discrete choices:
 
-```
-Traditional Agent Loop (Slow & Expensive):
-Task ──► [LLM: 4s] ──► [LLM: 5s] ──► Code ──► [LLM: 4s] ──► Verifier Fail ──► [LLM: 6s] ──► $0.18 / 19s
+- **Coding-Agent Preflight**: Task complexity triage, architectural boundary checks, and prompt bounding.
+- **Repository & Tool Routing**: Mapping issues to subsystems, selecting test runners, and picking verifier tiers.
+- **Verifier Failure Classification**: Distinguishing implementation defects from missing dependencies, flaky assertions, or toolchain crashes in milliseconds.
+- **Patch Triage & Gating**: Evaluating scope blast radius, completeness, and review readiness before human or CI review.
+- **Confidence-Based Escalation**: Halting autonomous loops and routing to humans when confidence falls below calibrated thresholds.
+- **Closed-Loop Provenance**: Tracking decisions and attaching downstream verifier outcomes for long-term calibration monitoring.
 
-Drex Gateway Loop (Targeted & Cost-Effective):
-Task ──► [Drex Preflight: 12ms] ──► [Targeted LLM Code: 4s] ──► [Drex Patch Triage: 14ms] ──► $0.03 / 4.1s
-```
+---
+
+## What Drex Does Not Handle
+
+Drex is strictly a typed decision primitive, **not** a generative LLM:
+
+- ❌ **No Code Generation**: Drex does not synthesize code, generate diffs, or autocomplete functions.
+- ❌ **No Free-Form Repo Summarization**: Drex does not generate narrative repository documentation.
+- ❌ **No PR Prose**: Drex does not write pull request descriptions or issue summaries.
+- ❌ **No Arbitrary Reasoning Prose**: Drex outputs structured choices, probabilities, and scores—not open-ended reasoning text.
+
+Those tasks remain the responsibility of generative models (e.g. Codex, Claude, GPT). Drex surrounds and bounds generative agents with structured decision controls.
 
 ---
 
 ## Architecture
 
+```text
+Task Objective
+      ↓
+Drex Preflight (Complexity, Subsystem, Verifier Selection)
+      ↓
+Coding Agent (Generative Model: Codex / Claude / GPT)
+      ↓
+Drex Patch Triage (Scope, Completeness, Risk Gating)
+      ↓
+Verifier (Unit / Integration / CI Harness)
+      ↓
+Drex Failure Triage (Root-Cause Diagnosis & Routing)
+      ↓
+Repair / Escalate / Submit
+```
+
 ```mermaid
 flowchart TD
-    Client[Coding Agent / Client Loop] --> Gateway[Drex Decision Gateway]
-    
+    Client[Coding Agent Loop] --> Gateway[Drex Decision Gateway]
+
     subgraph Gateway Core
-        Gateway --> Engine[Gateway Core Engine]
+        Gateway --> Engine[Decision Engine]
         Engine --> Policies[Confidence Policy Engine]
-        Engine --> Library[Coding Agent Decision Library]
+        Engine --> Library[Agent Decision Library]
         Engine --> Storage[(SQLite WAL Store & Provenance)]
-        Engine --> Metrics[Observability & Prometheus]
+        Engine --> Metrics[Prometheus Metrics & Health]
     end
-    
+
     subgraph Provider Layer
         Engine --> Router{Provider Mode}
         Router -->|Live Credentials| LiveProvider[Live DrexProvider\nhttps://drex.nace.ai]
-        Router -->|Mock / CI / Offline| ReplayProvider[Deterministic ReplayProvider\nprovider=REPLAY]
+        Router -->|Offline / CI / Dev| ReplayProvider[Deterministic ReplayProvider\nprovider=REPLAY]
     end
 
     subgraph Decision Primitives
         Engine --> Choose["choose(choices=[...])"]
         Engine --> YesNo["yes_no(question)"]
-        Engine --> Rate["rate(levels=[...])"]
+        Engine --> Rate["rate(criteria=[...])"]
         Engine --> Batch["batch_decide(shared_context)"]
     end
-    
-    subgraph Downstream Workflows
-        Choose & YesNo & Rate & Batch --> Preflight[Drex Preflight\nBefore Codex]
-        Choose & YesNo & Rate & Batch --> PatchTriage[Drex Patch Triage\nAfter Codex]
-        Choose & YesNo & Rate & Batch --> FailureTriage[Drex Failure Triage\nRoot Cause Routing]
+
+    subgraph Agent Workflows
+        Choose & YesNo & Rate & Batch --> Preflight[Drex Preflight]
+        Choose & YesNo & Rate & Batch --> PatchTriage[Drex Patch Triage]
+        Choose & YesNo & Rate & Batch --> FailureTriage[Drex Failure Triage]
     end
 
     Policies --> Disposition{Disposition Evaluation}
-    Disposition -->|Confidence >= Accept| ACCEPT[ACCEPT: Direct Action]
-    Disposition -->|Escalate <= Conf < Accept| ESCALATE[ESCALATE: Route to Human / Supervisor]
+    Disposition -->|Confidence >= Accept| ACCEPT[ACCEPT: Direct Execution]
+    Disposition -->|Escalate <= Conf < Accept| ESCALATE[ESCALATE: Route to Reviewer]
     Disposition -->|Conf < Escalate| ABSTAIN[ABSTAIN: Fallback Strategy]
 ```
+
+---
+
+## Visual Dashboard
+
+The embedded real-time web dashboard provides visibility into agent decision throughput, latency percentiles, decision provenance, and calibration benchmarks.
+
+| Overview & System ROI | End-to-End Coding Agent Loop Demo |
+| :---: | :---: |
+| ![Dashboard Overview](docs/assets/overview.png) | ![Coding Agent Demo](docs/assets/coding_agent_demo.png) |
+| **Decision Trace Provenance** | **Benchmark Calibration & Threshold Tradeoffs** |
+| ![Decision Trace](docs/assets/decision_trace.png) | ![Threshold Benchmark](docs/assets/threshold_benchmark.png) |
 
 ---
 
@@ -87,90 +133,120 @@ flowchart TD
 ### 1. Installation
 
 ```bash
-git clone https://github.com/drex-decision-gateway/drex-decision-gateway.git
-cd drex-decision-gateway
+git clone https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents.git
+cd Drex-Decision-Gateway-for-Coding-Agents
+python -m venv .venv
+source .venv/bin/activate
 pip install -e .
 ```
 
-### 2. Check Health & Provider Status
+### 2. Verify in Replay Mode (Zero Credentials Required)
+
+Run the full end-to-end coding agent simulation completely offline:
 
 ```bash
-drex-gateway health
+drex-gateway --replay demo
 ```
 
 Output:
-```
-Gateway Status: HEALTHY
-Provider:       Drex [LIVE]
-Default Model:  drex-latest
-Database Path:  drex_gateway.db
-Available Models (4):
-  - drex-v1.0: Drex System One decision model. Calibrated probabilities.
-  - drex-v1.5: Drex 1.5 decision model (up to 131,072 tokens).
-  - drex-latest: Points to drex-v1.5 (current recommended).
+```text
+Starting Drex Coding Agent Loop Simulation [REPLAY]...
+
+[Step 1] PREFLIGHT       (Agent): Ingested objective: Add rate-limiting middleware to auth login endpoint...
+[Step 2] PREFLIGHT       (Drex): Complexity: TRIVIAL (0.74) | Subsystem: AUTH (0.94) | Verifier: UNIT_TEST
+[Step 3] IMPLEMENTATION  (Agent): Generative model generated candidate patch based on Drex Preflight bounds.
+[Step 4] PATCH_TRIAGE    (Drex): Scope: TOO_NARROW (0.72) | Completeness: NO | Gating: ESCALATE_DEEP_REVIEW
+[Step 5] VERIFICATION    (Verifier): pytest failed with NameError: name 'check_rate_limit' is not defined.
+[Step 6] FAILURE_TRIAGE  (Drex): Class: VERIFIER_FAILURE (0.35) -> Next Action: ESCALATE
+[Step 7] IMPLEMENTATION  (Agent): Applied targeted single-line repair: imported check_rate_limit helper.
+[Step 8] VERIFICATION    (Verifier): 9 passed in 0.38s. All rate-limiting and auth tests succeeded.
+[Step 9] OUTCOME         (Gateway): Recorded VERIFIER_PASS durable outcome linked to decision provenance.
+
+=======================================================
+KILLER DEMO EXECUTION SUMMARY
+=======================================================
+Total Drex Decisions:     12
+Accepted Decisions:       1
+Escalated Decisions:      5
+Abstained Decisions:      6
+Expensive Calls Avoided:  1
+Trace ID:                 demo_trace_...
+=======================================================
 ```
 
-### 3. Start the Gateway & Web UI
+### 3. Start the HTTP Gateway & Web UI
 
 ```bash
 drex-gateway serve --host 127.0.0.1 --port 8000
 ```
-Open **`http://127.0.0.1:8000`** in your browser to inspect live decisions, run the interactive coding agent simulation, and view calibration benchmarks.
+Open **`http://127.0.0.1:8000`** in your browser to view the interactive dashboard, explore OpenAPI docs at `/docs`, or query Prometheus metrics at `/metrics`.
 
 ---
 
 ## Live Drex Configuration
 
-Drex Decision Gateway pins requests to verified Nace AI infrastructure at `https://drex.nace.ai`.
+To run against the live production Drex endpoint (`https://drex.nace.ai`), provide your API key using one of two methods:
 
-Authentication is loaded securely through either:
+### Method A: Environment Variable
+```bash
+export DREX_API_KEY="nace_sk_..."
+drex-gateway health
+```
 
-1. **Environment Variable**:
-   ```bash
-   export DREX_API_KEY="nace_sk_..."
-   ```
+### Method B: Secure Key File (`0600` Permissions)
+```bash
+mkdir -p ~/.config/drex
+echo -n "nace_sk_..." > ~/.config/drex/api.key
+chmod 0600 ~/.config/drex/api.key
 
-2. **Secure Key File** (recommended for production services):
-   ```bash
-   export DREX_API_KEY_FILE="/path/to/drex.api-key"
-   chmod 0600 /path/to/drex.api-key
-   ```
-   > Permissions check: Key files with permissions looser than `0600` (e.g. world-readable) are rejected to prevent credential leaks.
+# Or specify a custom path
+export DREX_API_KEY_FILE="/path/to/drex.api-key"
+```
 
-### Replay Mode (Offline / CI / Development)
-
-If no API key is configured or `--replay` is passed, the gateway activates `ReplayProvider`:
-- All responses are visibly and durably tagged `provider="REPLAY"`.
-- Fully deterministic keyword-aware probabilities.
-- Zero API spend, instant offline development and testing.
+> **Security Note:** The gateway automatically rejects key files with permissions looser than `0600` to prevent unintended credential leakage.
 
 ---
 
 ## Python SDK
 
-```python
-from drex_gateway import DrexGateway
+The Python SDK (`drex_gateway.sdk`) offers both high-performance in-process execution and remote HTTP client modes:
 
-gateway = DrexGateway()
+```python
+from drex_gateway.sdk.client import DrexGateway
+
+# Connects in-process by default (or pass base_url="http://localhost:8000")
+client = DrexGateway()
 
 # 1. Discrete Choice
-decision = gateway.choose(
-    question="Which verifier tier should validate this patch?",
-    choices=["unit_test", "integration_test", "full_ci_harness"],
-    context="Modified auth/jwt.py; updated unit test in tests/test_jwt.py",
+decision = client.choose(
+    question="Which verifier is appropriate for this change?",
+    choices={
+        "unit_test": "Fast local pytest unit tests (<1s)",
+        "integration_test": "Database and HTTP integration tests (~30s)",
+        "full_ci_harness": "Complete multi-service container suite (~10m)",
+    },
+    context="Modified auth/tokens.py line 45 (off-by-one fix). Tests in tests/test_tokens.py.",
     decision_type="VERIFIER_SELECTION",
 )
 
-print(f"Selected: {decision.selected} (Confidence: {decision.confidence:.2%})")
+print(f"Selected:    {decision.selected}")
+print(f"Confidence:  {decision.confidence:.2%}")
 print(f"Disposition: {decision.disposition.value}")
 
-if decision.accepted:
-    run_verifier(decision.selected)
-else:
-    escalate_to_human(decision)
+# 2. Inspect Calibrated Probabilities
+for choice, prob in sorted(decision.probabilities.items(), key=lambda kv: kv[1], reverse=True):
+    print(f"  {choice:<20} {prob:>6.2%}")
 
-# 2. Attach Outcome Feedback Later
-gateway.record_outcome(
+# 3. Binary Yes/No Verification
+arch_check = client.yes_no(
+    question="Does this change require architecture escalation?",
+    context="Refactor session store from local cache to multi-region Raft cluster.",
+    decision_type="ARCHITECTURE_ESCALATION",
+)
+print(f"Escalation needed: {arch_check.selected} (conf: {arch_check.confidence:.2%})")
+
+# 4. Attach Downstream Outcome
+client.record_outcome(
     decision_id=decision.decision_id,
     outcome="VERIFIER_PASS",
     success=True,
@@ -179,140 +255,189 @@ gateway.record_outcome(
 
 ---
 
-## Coding Agent Decision Library
+## HTTP REST API
 
-Predefined, typed schemas ready for integration:
+Fully typed endpoints available out-of-the-box:
 
-| Decision Type | Purpose | Choices / Range |
-|---|---|---|
-| `TASK_COMPLEXITY` | Architectural intake triage | `trivial`, `standard`, `large_context`, `architecture_heavy` |
-| `REPOSITORY_AREA` | Subsystem attribution | Dynamic map of repository subsystems |
-| `VERIFIER_SELECTION` | Target test suite selection | `unit_test`, `integration_test`, `linter_typecheck`, `full_ci_harness` |
-| `FAILURE_CLASSIFICATION` | Diagnostic root cause | `implementation_failure`, `verifier_failure`, `toolchain_failure`, `environment_failure`, `upstream_failure`, `context_stale`, `unknown` |
-| `NEXT_ACTION` | Agent loop action routing | `retry`, `repair`, `replan`, `escalate`, `wait_for_resource`, `stop` |
-| `PATCH_SCOPE_CLASS` | Diff size & boundary check | `too_narrow`, `appropriate`, `too_broad` |
-| `REVIEW_READINESS` | Gating candidate PRs | `ready`, `needs_repair`, `needs_deep_review` |
-| `ARCHITECTURE_ESCALATION` | Binary gate to large reasoning model | `YES` / `NO` (calibrated probability) |
-| `PATCH_RISK` | Blast radius scoring | `low`, `medium`, `high` |
+| Endpoint | Method | Purpose |
+| :--- | :--- | :--- |
+| `/healthz` | `GET` | Health check and active provider mode |
+| `/readyz` | `GET` | Database and provider readiness |
+| `/metrics` | `GET` | Prometheus telemetry text output |
+| `/v1/models` | `GET` | Available models and alias mappings |
+| `/v1/decide/choose` | `POST` | Execute discrete choice decision |
+| `/v1/decide/yes_no` | `POST` | Execute binary decision |
+| `/v1/decide/rate` | `POST` | Execute bounded scale rating |
+| `/v1/decide/batch` | `POST` | Batch multiple questions across shared context |
+| `/v1/coding/preflight` | `POST` | Execute preflight task scoping |
+| `/v1/coding/patch-triage` | `POST` | Execute patch review and gating |
+| `/v1/coding/failure-triage` | `POST` | Execute root-cause failure triage |
+| `/v1/decisions/{id}` | `GET` | Retrieve persisted decision with full probabilities |
+| `/v1/decisions/{id}/outcome` | `POST` | Attach ground-truth outcome |
+| `/v1/traces/{trace_id}` | `GET` | Retrieve complete decision timeline |
+| `/v1/stats` | `GET` | Aggregate latency and avoidance metrics |
 
----
-
-## Specialized Demonstrators
-
-### 1. Drex Preflight (Drex Before Codex)
-Preflights an issue before invocation of expensive models. Packages the problem into a bounded, structured specification:
-```python
-from drex_gateway.workflows import PreflightWorkflow
-
-preflight = PreflightWorkflow(gateway)
-result = await preflight.run(
-    task_description="Add rate limiting to auth routes",
-    repo_summary="FastAPI backend with Redis storage",
-)
-
-print(result.codex_ready_context)
-# Confines code generation strictly to auth area with target verifiers identified
-```
-
-### 2. Drex Patch Triage (Drex After Codex)
-Evaluates generated diffs, test output, and blast radius before costly PR review:
-```python
-from drex_gateway.workflows import PatchTriageWorkflow
-
-triage = PatchTriageWorkflow(gateway)
-report = await triage.run(
-    task_objective="Fix login brute-force vulnerability",
-    patch_diff=generated_diff,
-    verifier_evidence=test_output,
-)
-print(f"Gating Recommendation: {report.gating_action}")
-```
-
-### 3. Drex Failure Triage
-Identifies whether verification failed due to product defects vs broken dependencies or flaky test runners.
-> **Critical Economic Impact**: Prevents coding agents from burning 5–10 expensive repair attempts trying to fix missing system packages with Python code changes.
+Explore interactive OpenAPI Swagger docs at **`http://localhost:8000/docs`**.
 
 ---
 
-## Confidence Policies & Threshold Gating
+## Model Context Protocol (MCP)
 
-Confidence handling is a first-class citizen with per-decision-type policies:
-
-```yaml
-decision_policies:
-  VERIFIER_SELECTION:
-    accept_threshold: 0.85
-    escalation_threshold: 0.60
-
-  REVIEW_READINESS:
-    accept_threshold: 0.90
-    escalation_threshold: 0.75
-```
-
-- **`confidence >= accept_threshold`** ➔ **`ACCEPT`**: Gateway confirms action without human or expensive model.
-- **`escalation_threshold <= confidence < accept_threshold`** ➔ **`ESCALATE`**: Flagged for escalation to higher-tier reasoning or supervisor.
-- **`confidence < escalation_threshold`** ➔ **`ABSTAIN`**: Gateway abstains from deciding.
-
----
-
-## Benchmark Harness & Economic Simulation
-
-Run calibration benchmarks and escalation tradeoff simulations:
+Drex Decision Gateway includes a compliant **MCP Server (JSON-RPC 2.0)** for direct use inside Cursor, Windsurf, Claude Desktop, and autonomous agent loops:
 
 ```bash
-drex-gateway benchmark
+drex-gateway serve
 ```
 
-Output:
+### Adding to Claude Desktop / Cursor
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "drex-decision-gateway": {
+      "command": "drex-gateway",
+      "args": ["serve"],
+      "env": {
+        "DREX_API_KEY": "nace_sk_..."
+      }
+    }
+  }
+}
 ```
-=======================================================
-THRESHOLD ESCALATION SIMULATION (Economic Tradeoffs)
-=======================================================
+
+Exposed MCP Tools:
+- `drex_choose`: Structured multi-choice decision
+- `drex_yes_no`: Binary verification decision
+- `drex_rate`: Ordered scale scoring
+- `drex_coding_preflight`: Task bounding before LLM generation
+- `drex_patch_triage`: Diff blast-radius and readiness gating
+- `drex_failure_triage`: Root-cause failure diagnosis
+- `drex_record_outcome`: Ground-truth outcome attachment
+
+---
+
+## Agent Loop Workflows
+
+### 1. Coding Preflight
+Before generating candidate code, Preflight classifies task complexity, identifies repository subsystems, picks the minimal verifier tier, and bounds the prompt:
+
+```python
+preflight = client.preflight(
+    task_description="Add rate-limiting middleware to /auth/login endpoint in api/v1/auth.py",
+    repo_summary="FastAPI backend with auth, billing, and core subsystems.",
+)
+print(preflight.codex_ready_context)
+```
+
+### 2. Patch Triage
+After code generation, Patch Triage evaluates diff size, completeness, risk, and missing companion tests in a single roundtrip:
+
+```python
+triage = client.patch_triage(
+    task_objective="Fix off-by-one boundary in token expiration",
+    patch_diff=git_diff_text,
+    verifier_evidence="14 passed in 0.42s",
+)
+print(f"Action: {triage.gating_action}")  # PROCEED_TO_SUBMISSION / RETURN_TO_REPAIR / ESCALATE_DEEP_REVIEW
+```
+
+### 3. Failure Triage
+When tests or toolchains fail, Failure Triage distinguishes product bugs from missing dependencies:
+
+```python
+triage = client.failure_triage(
+    objective="Fix checkout billing flow",
+    changed_files=["billing/checkout.py"],
+    verifier_command="pytest",
+    exit_code=1,
+    stdout_stderr="ModuleNotFoundError: No module named 'stripe'",
+)
+print(f"Root Cause: {triage.failure_classification.selected}")  # environment_failure
+print(f"Action:     {triage.recommended_action}")               # ESCALATE (avoids wasted code repair)
+```
+
+---
+
+## Confidence Policies & Provenance
+
+Every decision evaluated by the gateway is assigned a calibrated disposition:
+- **`ACCEPT`** ($\text{confidence} \ge \tau_{\text{accept}}$): High certainty. Action proceeds autonomously.
+- **`ESCALATE`** ($\tau_{\text{escalate}} \le \text{confidence} < \tau_{\text{accept}}$): Ambiguity detected. Task routed to human review or supervisor.
+- **`ABSTAIN`** ($\text{confidence} < \tau_{\text{escalate}}$): Model refuses to commit. Safe fallback executed.
+
+Decisions are stored durably in SQLite with Write-Ahead Logging (WAL) and full probability distributions, context digests, and millisecond latencies.
+
+---
+
+## Benchmarking & Threshold Analysis
+
+The gateway includes an evaluation suite (`coding_tasks.jsonl`) measuring accuracy, coverage, and calibration across realistic coding scenarios.
+
+Run the benchmark CLI:
+```bash
+drex-gateway --replay benchmark
+```
+
+### Threshold Escalation Tradeoff (Economic Simulation)
+The simulator sweeps acceptance thresholds ($\tau_{\text{accept}}$) to visualize the frontier between agent autonomy and error escape rate:
+
+```text
 Threshold | Coverage | Accuracy | Escalation | Abstention | Calls Avoided
    0.50   |   90.0%  |    72.2% |     5.0%   |     5.0%   |    18
    0.60   |   80.0%  |    75.0% |    15.0%   |     5.0%   |    16
    0.70   |   70.0%  |    85.7% |    20.0%   |    10.0%   |    14
    0.80   |   60.0%  |    91.7% |    20.0%   |    20.0%   |    12
+   0.85   |   45.0%  |    96.0% |    35.0%   |    20.0%   |     9
    0.90   |   15.0%  |   100.0% |    55.0%   |    30.0%   |     3
-=======================================================
+   0.95   |    0.0%  |      N/A |    65.0%   |    35.0%   |     0
+```
+
+For full details on dataset provenance, mathematical formulas, and statistical boundaries, see [**`docs/BENCHMARKS.md`**](docs/BENCHMARKS.md).
+
+---
+
+## Observability & Prometheus Metrics
+
+Scrape gateway metrics at `/metrics`:
+
+```text
+# HELP drex_decisions_total Total decisions processed by the gateway
+# TYPE drex_decisions_total counter
+drex_decisions_total{provider="Drex",model="drex-latest",type="VERIFIER_SELECTION",disposition="ACCEPT"} 14
+drex_decisions_total{provider="Drex",model="drex-latest",type="FAILURE_CLASSIFICATION",disposition="ESCALATE"} 4
+
+# HELP drex_expensive_calls_avoided_total Expensive generative calls classified as avoided
+# TYPE drex_expensive_calls_avoided_total counter
+drex_expensive_calls_avoided_total 18
+
+# HELP drex_latency_ms Decision roundtrip latency in milliseconds
+# TYPE drex_latency_ms summary
+drex_latency_ms{quantile="0.5"} 328.4
+drex_latency_ms{quantile="0.95"} 376.9
 ```
 
 ---
 
-## HTTP API & Model Context Protocol (MCP)
+## Security Policy
 
-### HTTP Endpoints
-- `GET /healthz` & `GET /readyz`: Health and readiness checks
-- `POST /v1/decide/choose`: Discrete choice primitive
-- `POST /v1/decide/yes-no`: Binary probability decision
-- `POST /v1/decide/rate`: Bounded scale scoring
-- `POST /v1/decide/batch`: Shared-context multi-decision batch
-- `POST /v1/coding/preflight`: Task intake & preflight workflow
-- `POST /v1/coding/patch-triage`: Post-generation triage workflow
-- `POST /v1/coding/failure-triage`: Error diagnosis workflow
-- `POST /v1/decisions/{id}/outcome`: Outcome feedback recording
-- `GET /v1/traces/{trace_id}`: Full decision provenance timeline
-- `GET /metrics`: Prometheus-compatible telemetry
-
-### MCP Tool Support
-Run the standard stdio MCP server for Cursor, Windsurf, or Claude Code:
-```bash
-python -m drex_gateway.mcp.server
-```
-Exposes tools: `drex_choose`, `drex_yes_no`, `drex_rate`, `drex_coding_preflight`, `drex_patch_triage`, `drex_failure_triage`.
+- **Zero Credential Logging**: API keys and authorization headers are never logged or stored in database traces.
+- **Strict POSIX Permissions**: Key files must be restricted to `0600` or `0400`.
+- **Private Vulnerability Reporting**: Review [**`SECURITY.md`**](SECURITY.md) to report vulnerabilities privately.
 
 ---
 
-## Security & Reliability Guarantees
+## Independent Project & Branding Notice
 
-1. **No API Key Logging**: Secrets are never written to logs, database records, or trace metadata.
-2. **Strict Origin Validation**: Only `https://drex.nace.ai` is trusted for live requests.
-3. **No Fake Decisions on Provider Failure**: Provider errors (`PROVIDER_AUTH`, `PROVIDER_TIMEOUT`, `PROVIDER_RATE_LIMIT`, `PROVIDER_UNAVAILABLE`) raise typed exceptions and are never converted into misleading low-confidence results.
-4. **Idempotent Outcome Logging**: Feedback can be attached safely without duplicate counts.
-5. **Concurrency-Safe Storage**: SQLite configured with Write-Ahead Logging (`WAL`), `synchronous=NORMAL`, and busy timeouts.
+**Drex Decision Gateway** is an independent open-source project built for the Drex decision model. It is not an official Nace AI project, official Drex SDK, or certified partnership. "Powered by Drex" refers solely to the underlying decision model technology.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read [**`CONTRIBUTING.md`**](CONTRIBUTING.md) and our [**`CODE_OF_CONDUCT.md`**](CODE_OF_CONDUCT.md) before opening a pull request.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Independent open-source integration. Not officially affiliated with or endorsed by Nace AI.
+This project is licensed under the [**MIT License**](LICENSE).

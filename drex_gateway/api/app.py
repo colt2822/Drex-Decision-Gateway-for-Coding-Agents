@@ -57,6 +57,11 @@ def create_app(gateway: DrexDecisionGateway | None = None) -> FastAPI:
                 return FileResponse(index_path)
             return JSONResponse({"message": "Drex Decision Gateway API active. See /docs for endpoints."})
 
+        @app.get("/favicon.ico", include_in_schema=False)
+        async def serve_favicon():
+            from fastapi import Response
+            return Response(status_code=204)
+
     # Error handling
     @app.exception_handler(ProviderError)
     async def provider_error_handler(request: Request, exc: ProviderError):
