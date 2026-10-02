@@ -40,7 +40,7 @@ $$\text{Accuracy} = \frac{\sum_{i \in \text{Accepted \& Labeled}} \mathbf{1}(\ha
 
 - **Accuracy is calculated strictly over decisions that were ACCEPTED by the confidence policy.**
 - If a decision was **ESCALATED** or **ABSTAINED**, it was **not accepted** by the agent loop (it sought human or generative second opinions). Thus, counting escalated failures as autonomous agent mistakes would misrepresent the policy's purpose.
-- When evaluating across all cases regardless of disposition, this is reported as raw unconstrained accuracy.
+- The report exposes accepted-only accuracy. It does not currently include raw unconstrained accuracy across escalated and abstained cases.
 
 ### Coverage (Autonomous Acceptance Rate)
 $$\text{Coverage} = \frac{|\text{Decisions with Disposition ACCEPT}|}{N_{\text{total}}}$$

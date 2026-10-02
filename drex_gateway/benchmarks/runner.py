@@ -9,7 +9,6 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from drex_gateway.gateway import DrexDecisionGateway
-from drex_gateway.models import ChoiceQuestion, NoulQuestion, ScoreQuestion
 
 
 class BenchmarkCase(BaseModel):
@@ -94,39 +93,47 @@ class BenchmarkRunner:
         escalated_count = 0
 
         for case in cases:
-            # Build appropriate question object
-            q_obj: Any
-            if case.question_type == "choice":
-                crit = {k.lower(): v for k, v in case.criteria.items()}
-                q_obj = ChoiceQuestion(type="choice", instructions=case.instructions, criteria=crit)
-            elif case.question_type == "noul":
-                q_obj = NoulQuestion(type="noul", instructions=case.instructions)
-            elif case.question_type == "score":
-                crit_list = case.criteria if isinstance(case.criteria, list) else list(case.criteria.keys())
-                q_obj = ScoreQuestion(type="score", instructions=case.instructions, criteria=crit_list)
-            else:
-                continue
-
             t0 = time.perf_counter()
-            dec = await self.gateway.choose(
-                question=case.instructions,
-                choices=case.criteria if case.question_type == "choice" else ["yes", "no"],
-                context=case.context,
-                decision_type=case.decision_type,
-                question_id=case.id,
-                metadata={"benchmark_run_id": run_id, "case_id": case.id},
-            )
+            common = {
+                "decision_type": case.decision_type,
+                "question_id": case.id,
+                "metadata": {"benchmark_run_id": run_id, "case_id": case.id},
+            }
+            if case.question_type == "choice":
+                dec = await self.gateway.choose(
+                    question=case.instructions,
+                    choices=case.criteria,
+                    context=case.context,
+                    **common,
+                )
+            elif case.question_type == "noul":
+                dec = await self.gateway.yes_no(
+                    question=case.instructions,
+                    context=case.context,
+                    **common,
+                )
+            elif case.question_type == "score":
+                criteria = case.criteria if isinstance(case.criteria, list) else list(case.criteria.keys())
+                dec = await self.gateway.rate(
+                    question=case.instructions,
+                    criteria=criteria,
+                    context=case.context,
+                    **common,
+                )
+            else:
+                raise ValueError(f"Unsupported benchmark question type: {case.question_type!r}")
             elapsed = (time.perf_counter() - t0) * 1000.0
             latencies.append(elapsed)
 
             correct = None
             if case.expected_answer is not None:
-                labeled_count += 1
                 exp_clean = case.expected_answer.strip().lower()
                 got_clean = str(dec.selected).strip().lower()
                 correct = (exp_clean == got_clean)
-                if correct:
-                    correct_count += 1
+                if dec.accepted:
+                    labeled_count += 1
+                    if correct:
+                        correct_count += 1
 
             if dec.accepted:
                 accepted_count += 1

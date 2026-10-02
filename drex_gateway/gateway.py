@@ -210,6 +210,7 @@ class DrexDecisionGateway:
 
         t0 = time.perf_counter()
         resp = await self.provider.decide(request.state, questions, trace_id=trace_id)
+        self.provider.validate_response(questions, {"answers": resp.answers})
         total_time_ms = (time.perf_counter() - t0) * 1000.0
 
         prov_lat = resp.provider_latency_ms
@@ -271,9 +272,9 @@ class DrexDecisionGateway:
                 would_have_used_expensive_model=request.would_have_used_expensive_model,
                 metadata=request.metadata,
             )
-            # Record in database
-            self.db.record_decision(res, state_text=request.state)
             decisions[q_id] = res
+
+        self.db.record_decisions(list(decisions.values()), state_text=request.state)
 
         return BatchDecisionResult(
             trace_id=trace_id,
@@ -292,6 +293,7 @@ class DrexDecisionGateway:
 
         t0 = time.perf_counter()
         resp = await self.provider.decide(request.state, questions, trace_id=trace_id)
+        self.provider.validate_response(questions, {"answers": resp.answers})
         total_time_ms = (time.perf_counter() - t0) * 1000.0
 
         prov_lat = resp.provider_latency_ms

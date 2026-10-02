@@ -100,6 +100,11 @@ class BaseDecisionProvider(abc.ABC):
 
     def validate_response(self, questions: dict[str, AnyQuestion], payload: dict[str, Any]) -> None:
         """Strict validation of provider response format and probability bounds."""
+        if not isinstance(payload, dict):
+            raise ProviderError(
+                ProviderErrorKind.INVALID_RESPONSE,
+                "Provider response must be a JSON object",
+            )
         answers = payload.get("answers")
         if not isinstance(answers, dict) or set(answers) != set(questions):
             raise ProviderError(
@@ -109,6 +114,11 @@ class BaseDecisionProvider(abc.ABC):
 
         for q_id, q in questions.items():
             ans = answers[q_id]
+            if not isinstance(ans, dict):
+                raise ProviderError(
+                    ProviderErrorKind.INVALID_RESPONSE,
+                    f"Answer for {q_id!r} must be an object",
+                )
             q_type = q.type if hasattr(q, "type") else q["type"]
             ans_type = ans.get("type")
             if ans_type != q_type:
@@ -128,7 +138,7 @@ class BaseDecisionProvider(abc.ABC):
                 crit = q.criteria if hasattr(q, "criteria") else q["criteria"]
                 probs = ans.get("probabilities")
                 choice = ans.get("choice")
-                if choice not in crit:
+                if not isinstance(choice, str) or choice not in crit:
                     raise ProviderError(
                         ProviderErrorKind.INVALID_RESPONSE,
                         f"Selected choice {choice!r} for {q_id!r} not in criteria {list(crit.keys())}",
@@ -138,23 +148,58 @@ class BaseDecisionProvider(abc.ABC):
                         ProviderErrorKind.INVALID_RESPONSE,
                         f"Probabilities keys for {q_id!r} mismatch criteria",
                     )
+                self._validate_probabilities(probs, q_id)
                 prob_sum = sum(probs.values())
                 if abs(prob_sum - 1.0) > 0.05:
                     raise ProviderError(
                         ProviderErrorKind.INVALID_RESPONSE,
                         f"Probabilities for {q_id!r} do not sum to 1.0 (sum={prob_sum})",
                     )
+                if "confidence" in ans:
+                    self._validate_unit_interval(ans["confidence"], q_id, "confidence")
             elif q_type == "score":
                 crit = q.criteria if hasattr(q, "criteria") else q["criteria"]
+                score = ans.get("score")
+                if (
+                    isinstance(score, bool)
+                    or not isinstance(score, (int, float))
+                    or not math.isfinite(score)
+                    or not 0.0 <= score <= max(0, len(crit) - 1)
+                ):
+                    raise ProviderError(
+                        ProviderErrorKind.INVALID_RESPONSE,
+                        f"Invalid score for {q_id!r}: expected a finite score within the requested levels",
+                    )
                 probs = ans.get("probabilities")
                 if not isinstance(probs, dict):
                     raise ProviderError(
                         ProviderErrorKind.INVALID_RESPONSE,
                         f"Missing probabilities dict for score question {q_id!r}",
                     )
+                self._validate_probabilities(probs, q_id)
                 prob_sum = sum(probs.values())
                 if abs(prob_sum - 1.0) > 0.05:
                     raise ProviderError(
                         ProviderErrorKind.INVALID_RESPONSE,
                         f"Score probabilities for {q_id!r} do not sum to 1.0 (sum={prob_sum})",
                     )
+                if "confidence" in ans:
+                    self._validate_unit_interval(ans["confidence"], q_id, "confidence")
+
+    @staticmethod
+    def _validate_unit_interval(value: Any, q_id: str, field_name: str) -> None:
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            or not 0.0 <= value <= 1.0
+        ):
+            raise ProviderError(
+                ProviderErrorKind.INVALID_RESPONSE,
+                f"Invalid {field_name} for {q_id!r}: expected a finite number in [0, 1]",
+            )
+
+    @classmethod
+    def _validate_probabilities(cls, probabilities: dict[str, Any], q_id: str) -> None:
+        for key, value in probabilities.items():
+            cls._validate_unit_interval(value, q_id, f"probability[{key!r}]")

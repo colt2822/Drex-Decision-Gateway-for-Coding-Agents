@@ -4,8 +4,8 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Any
-from pydantic import BaseModel, Field
+from typing import Any, Literal
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 DEFAULT_BASE_URL = "https://drex.nace.ai"
 DEFAULT_MODEL = "drex-latest"
@@ -21,11 +21,16 @@ class PolicyConfig(BaseModel):
 
 
 class GatewayConfig(BaseModel):
+    model_config = ConfigDict(validate_assignment=True)
+
     base_url: str = Field(default=DEFAULT_BASE_URL)
     model: str = Field(default=DEFAULT_MODEL)
     timeout_seconds: float = Field(default=DEFAULT_TIMEOUT_SECONDS)
     db_path: str = Field(default=DEFAULT_DB_PATH)
-    force_provider: str | None = Field(default=None, description="Force LIVE or REPLAY provider mode")
+    force_provider: Literal["LIVE", "REPLAY"] | None = Field(
+        default=None, description="Force LIVE or REPLAY provider mode"
+    )
+    api_key_override: SecretStr | None = Field(default=None, exclude=True, repr=False)
     default_policy: PolicyConfig = Field(default_factory=PolicyConfig)
     decision_policies: dict[str, PolicyConfig] = Field(default_factory=dict)
     model_cost_table: dict[str, float] = Field(
@@ -36,6 +41,14 @@ class GatewayConfig(BaseModel):
         },
         description="Optional model cost per invocation table in USD",
     )
+
+    @field_validator("force_provider", mode="before")
+    @classmethod
+    def normalize_force_provider(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            normalized = value.strip().upper()
+            return normalized or None
+        return value
 
     @classmethod
     def from_env(cls) -> GatewayConfig:
@@ -56,6 +69,10 @@ class GatewayConfig(BaseModel):
 
     def get_api_key(self) -> str | None:
         """Safely resolve API key from environment variable or key file without printing."""
+        if self.api_key_override is not None:
+            key = self.api_key_override.get_secret_value().strip()
+            return key if _KEY_PATTERN.fullmatch(key) else None
+
         # 1. Direct environment variable
         direct_key = os.environ.get("DREX_API_KEY", "").strip()
         if direct_key:

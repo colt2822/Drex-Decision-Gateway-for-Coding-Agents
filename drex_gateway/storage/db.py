@@ -35,7 +35,6 @@ class Database:
                 self.db_path,
                 timeout=30.0,
                 check_same_thread=False,
-                isolation_level=None,  # autocommit mode / explicit transactions
             )
             conn.row_factory = sqlite3.Row
             # Enable WAL mode, normal synchronous, and foreign keys
@@ -81,60 +80,73 @@ class Database:
             )
 
     def record_decision(self, decision: DecisionResult, state_text: str | None = None) -> None:
+        self.record_decisions([decision], state_text=state_text)
+
+    def record_decisions(self, decisions: list[DecisionResult], state_text: str | None = None) -> None:
+        """Persist decisions, traces, and probabilities in one SQLite transaction."""
         conn = self._get_connection()
         with conn:
-            # Ensure trace exists
+            for decision in decisions:
+                self._insert_decision(conn, decision, state_text)
+
+    @staticmethod
+    def _insert_decision(
+        conn: sqlite3.Connection,
+        decision: DecisionResult,
+        state_text: str | None,
+    ) -> None:
+        # Ensure trace exists
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO traces (trace_id, root_decision_id, created_at, updated_at)
+            VALUES (?, ?, datetime('now'), datetime('now'));
+            """,
+            (decision.trace_id, decision.decision_id),
+        )
+
+        conn.execute(
+            """
+            INSERT INTO decisions (
+                decision_id, trace_id, parent_decision_id, decision_type, question_id,
+                selected, confidence, disposition, escalation_required, model, provider,
+                latency_ms, provider_latency_ms, gateway_overhead_ms, input_tokens, output_tokens,
+                context_digest, state_text, would_have_used_expensive_model, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """,
+            (
+                decision.decision_id,
+                decision.trace_id,
+                decision.parent_decision_id,
+                decision.decision_type,
+                decision.question_id,
+                str(decision.selected),
+                float(decision.confidence),
+                decision.disposition.value,
+                1 if decision.escalation_required else 0,
+                decision.model,
+                decision.provider,
+                float(decision.latency_ms),
+                float(decision.provider_latency_ms) if decision.provider_latency_ms is not None else None,
+                float(decision.gateway_overhead_ms),
+                decision.input_tokens,
+                decision.output_tokens,
+                decision.context_digest,
+                state_text[:65536] if state_text else None,
+                1 if decision.would_have_used_expensive_model else 0,
+                json.dumps(decision.metadata),
+                decision.created_at,
+            ),
+        )
+
+        for key, prob in decision.probabilities.items():
             conn.execute(
                 """
-                INSERT OR IGNORE INTO traces (trace_id, root_decision_id, created_at, updated_at)
-                VALUES (?, ?, datetime('now'), datetime('now'));
+                INSERT INTO decision_probabilities (decision_id, choice_key, probability)
+                VALUES (?, ?, ?)
+                ON CONFLICT(decision_id, choice_key) DO UPDATE SET probability = excluded.probability;
                 """,
-                (decision.trace_id, decision.decision_id),
+                (decision.decision_id, key, float(prob)),
             )
-
-            conn.execute(
-                """
-                INSERT INTO decisions (
-                    decision_id, trace_id, parent_decision_id, decision_type, question_id,
-                    selected, confidence, disposition, escalation_required, model, provider,
-                    latency_ms, provider_latency_ms, gateway_overhead_ms, input_tokens, output_tokens,
-                    context_digest, state_text, would_have_used_expensive_model, metadata_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                """,
-                (
-                    decision.decision_id,
-                    decision.trace_id,
-                    decision.parent_decision_id,
-                    decision.decision_type,
-                    decision.question_id,
-                    str(decision.selected),
-                    float(decision.confidence),
-                    decision.disposition.value,
-                    1 if decision.escalation_required else 0,
-                    decision.model,
-                    decision.provider,
-                    float(decision.latency_ms),
-                    float(decision.provider_latency_ms) if decision.provider_latency_ms is not None else None,
-                    float(decision.gateway_overhead_ms),
-                    decision.input_tokens,
-                    decision.output_tokens,
-                    decision.context_digest,
-                    state_text[:65536] if state_text else None,
-                    1 if decision.would_have_used_expensive_model else 0,
-                    json.dumps(decision.metadata),
-                    decision.created_at,
-                ),
-            )
-
-            for key, prob in decision.probabilities.items():
-                conn.execute(
-                    """
-                    INSERT INTO decision_probabilities (decision_id, choice_key, probability)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(decision_id, choice_key) DO UPDATE SET probability = excluded.probability;
-                    """,
-                    (decision.decision_id, key, float(prob)),
-                )
 
     def record_outcome(
         self,

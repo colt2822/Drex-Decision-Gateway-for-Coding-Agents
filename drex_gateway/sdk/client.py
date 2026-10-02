@@ -5,6 +5,7 @@ import asyncio
 from typing import Any
 
 import httpx
+from pydantic import SecretStr
 
 from drex_gateway.config import GatewayConfig
 from drex_gateway.gateway import DrexDecisionGateway
@@ -42,6 +43,7 @@ class DrexGateway:
                 cfg = GatewayConfig.from_env()
                 if api_key:
                     # Allow programmatic credential injection
+                    cfg.api_key_override = SecretStr(api_key)
                     cfg.force_provider = "LIVE"
                 if provider_mode:
                     cfg.force_provider = provider_mode.upper()
