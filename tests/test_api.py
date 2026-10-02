@@ -63,3 +63,16 @@ async def test_api_endpoints(gateway: DrexDecisionGateway):
         r = await client.get("/metrics")
         assert r.status_code == 200
         assert "drex_decisions_total" in r.text
+
+
+@pytest.mark.asyncio
+async def test_cors_requires_an_explicit_exact_origin(gateway: DrexDecisionGateway, monkeypatch):
+    monkeypatch.setenv("DREX_CORS_ORIGINS", "https://trusted.example")
+    app = create_app(gateway=gateway)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        attacker = await client.get("/healthz", headers={"Origin": "https://attacker.example"})
+        trusted = await client.get("/healthz", headers={"Origin": "https://trusted.example"})
+    assert "access-control-allow-origin" not in attacker.headers
+    assert trusted.headers.get("access-control-allow-origin") == "https://trusted.example"
+    assert "access-control-allow-credentials" not in trusted.headers

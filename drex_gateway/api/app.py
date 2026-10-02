@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,6 +17,25 @@ from drex_gateway.gateway import DrexDecisionGateway
 STATIC_DIR = Path(__file__).parent.parent / "web" / "static"
 
 
+def _cors_origins() -> list[str]:
+    raw = os.environ.get("DREX_CORS_ORIGINS", "")
+    origins = [value.strip() for value in raw.split(",") if value.strip()]
+    for origin in origins:
+        parsed = urlsplit(origin)
+        if (
+            origin == "*"
+            or parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+            or parsed.username
+            or parsed.password
+        ):
+            raise ValueError("DREX_CORS_ORIGINS must contain exact HTTP(S) origins, not wildcards or URLs with paths")
+    return origins
+
+
 def create_app(gateway: DrexDecisionGateway | None = None) -> FastAPI:
     if gateway is None:
         cfg = GatewayConfig.from_env()
@@ -27,16 +47,15 @@ def create_app(gateway: DrexDecisionGateway | None = None) -> FastAPI:
             "High-throughput, structured decision gateway for coding-agent loops. "
             "Replaces expensive generative LLM calls with fast, calibrated Drex probability decisions."
         ),
-        version="0.1.0",
+        version="0.1.1",
         docs_url="/docs",
         redoc_url="/redoc",
     )
 
-    # Allow local cross-origin development
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=_cors_origins(),
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
