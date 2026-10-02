@@ -1,4 +1,12 @@
-# Release Notes: Drex Decision Gateway v0.1.0
+# Release Notes: Drex Decision Gateway
+
+## v0.1.1 — Security and correctness patch
+
+- Includes provider validation, atomic SQLite writes, typed benchmark dispatch and accounting, strict provider-mode validation, and protected SDK/API key handling.
+- Restricts browser cross-origin access to explicitly configured exact origins. The API remains unauthenticated and binds to loopback by default.
+- Validation: 40 tests passed; replay benchmark evaluated 20 cases with 100% accepted accuracy and 40% coverage.
+
+## v0.1.0
 
 **Drex Decision Gateway v0.1.0** is the first public open-source release of the decision-control and evaluation layer for coding-agent loops powered by Drex.
 

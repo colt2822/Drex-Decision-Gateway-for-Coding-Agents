@@ -179,6 +179,8 @@ Trace ID:                 demo_trace_...
 ```bash
 drex-gateway serve --host 127.0.0.1 --port 8000
 ```
+
+The HTTP API has no built-in authentication and binds to loopback by default. Keep it on loopback unless a separately secured network deployment is configured. Cross-origin browser access is disabled by default; set `DREX_CORS_ORIGINS` to a comma-separated list of exact HTTP(S) origins when needed. Wildcards are rejected.
 Open **`http://127.0.0.1:8000`** in your browser to view the interactive dashboard, explore OpenAPI docs at `/docs`, or query Prometheus metrics at `/metrics`.
 
 ---

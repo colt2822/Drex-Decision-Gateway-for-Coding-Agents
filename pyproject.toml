@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "drex-decision-gateway"
-version = "0.1.0"
+version = "0.1.1"
 description = "A high-throughput, structured decision gateway for coding-agent loops powered by Drex."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -8,6 +8,8 @@
 
 ---
 
+The HTTP API has no built-in authentication. The CLI binds to loopback by default, and browser cross-origin access is disabled unless exact origins are configured through `DREX_CORS_ORIGINS`. Deployments that bind to a network interface must supply independent authentication and access controls.
+
 ## Reporting a Vulnerability
 
 We take the security of **Drex Decision Gateway** seriously. If you discover a security vulnerability or potential credential leak:
