@@ -1,0 +1,6 @@
+{
+  "independent_reference": "python jsonschema Draft202012Validator",
+  "cases": 253,
+  "matches": 253,
+  "all_passed": true
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Gateway choice request (bounded subset of existing DecisionRequest and ChoiceQuestion)",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string"
+    },
+    "question_id": {
+      "type": "string"
+    },
+    "question": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "choice"
+        },
+        "instructions": {
+          "type": "string"
+        },
+        "criteria": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "instructions",
+        "criteria"
+      ],
+      "additionalProperties": false
+    },
+    "decision_type": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "state",
+    "question"
+  ],
+  "additionalProperties": false
+}

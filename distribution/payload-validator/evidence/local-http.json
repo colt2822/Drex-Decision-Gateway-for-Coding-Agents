@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "test enrollment",
+    "pass",
+    "fail",
+    "network reference rejected",
+    "byte limit",
+    "MCP initialize",
+    "MCP tool discovery",
+    "structured fail is completed check",
+    "structured rejected is tool error",
+    "origin rejection",
+    "private telemetry",
+    "attribution and test exclusion",
+    "enforced rate limit"
+  ],
+  "passed": 13
+}

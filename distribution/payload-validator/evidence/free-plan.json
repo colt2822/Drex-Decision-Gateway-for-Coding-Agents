@@ -1,0 +1,1 @@
+{"provider":"Cloudflare","free_plan_confirmed":true,"evidence":"API error 100328: CPU limits are not supported for the Free plan","explicit_cpu_override_removed":true,"paid_plan_enabled":false,"platform_cpu_limit_ms":10}

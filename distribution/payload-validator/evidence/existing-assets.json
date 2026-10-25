@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-10-25T04:25Z",
+  "repositories": {
+    "colt2822/Drex-MCP": {
+      "visibility": "private",
+      "public_history_snapshot": "f77fc36",
+      "capability": "Client-owned-key stdio adapter drex_decide; missing-key handling and 10 offline tests passed",
+      "live_inference_tested": false
+    },
+    "colt2822/Drex-Decision-Gateway-for-Coding-Agents": {
+      "visibility": "public",
+      "base_commit": "c8bc8dd",
+      "capability": "Typed request validation, replay gateway, CLI, MCP; 38 offline tests passed",
+      "live_inference_tested": false
+    }
+  },
+  "terms": {
+    "url": "https://console.nace.ai/terms",
+    "updated": "2026-10-19",
+    "sections": [
+      "6.1(d): standalone API/MCP resale requires Separate Agreement",
+      "10: Models belong to Nace; applications using Services permitted"
+    ],
+    "separate_agreement_evidence": "NONE_FOUND",
+    "decision": "Do not proxy or white-label Drex inference; ship first-party deterministic validation"
+  },
+  "reuse": "Public Gateway MIT repository, installation channel and bounded choice request schema derived from existing DecisionRequest/ChoiceQuestion. Drex-MCP inspected and tested; not republished or made public."
+}

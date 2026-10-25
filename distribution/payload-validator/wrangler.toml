@@ -1,0 +1,22 @@
+name = "elyreon-payload-validator"
+main = "worker.mjs"
+compatibility_date = "2026-10-24"
+workers_dev = true
+preview_urls = false
+# No custom routes, production services, upstream credentials, AI or payment bindings.
+[vars]
+PUBLIC_ORIGIN = "https://elyreon-payload-validator.colt2822.workers.dev"
+PAID_ENABLED = "NO"
+[[d1_databases]]
+binding = "DB"
+database_name = "elyreon-payload-validator"
+database_id = "f0ca9bd4-8e2d-41fc-8ec9-334e1f9450a8"
+[[ratelimits]]
+name = "EDGE_LIMIT"
+namespace_id = "102501"
+simple = { limit = 30, period = 60 }
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+# Free-plan platform CPU ceiling is 10 ms. Explicit CPU settings require a paid plan.

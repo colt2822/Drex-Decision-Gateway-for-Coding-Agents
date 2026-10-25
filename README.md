@@ -443,3 +443,7 @@ Contributions are welcome! Please read [**`CONTRIBUTING.md`**](CONTRIBUTING.md) 
 ## License
 
 This project is licensed under the [**MIT License**](LICENSE).
+
+## First-party payload validation
+
+[ELYREON Payload Validator](distribution/payload-validator/README.md) is a separate deterministic JSON validation capability with HTTP, MCP and Agent Skill integration. It has no Nace inference or payment dependency. The existing Drex gateway remains an adapter to Nace.AI's third-party model.
