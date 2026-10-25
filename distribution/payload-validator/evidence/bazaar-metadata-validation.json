@@ -1,0 +1,7 @@
+{
+  "info_validates_against_extension_schema": true,
+  "specification": "https://github.com/coinbase/x402/blob/main/specs/extensions/bazaar.md",
+  "active_payment_requirements": false,
+  "accepts": [],
+  "submitted_to_bazaar": false
+}

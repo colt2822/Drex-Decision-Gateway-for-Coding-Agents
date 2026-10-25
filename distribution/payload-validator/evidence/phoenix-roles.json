@@ -1,0 +1,190 @@
+{
+  "payload_distribution:work:PHOENIX-01": {
+    "role": "CLOSER: conversion tracking",
+    "owner_instance": "phx-01-g1c1-dfcd9d3e",
+    "at": 1792902530.8581011,
+    "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
+    "usage": [
+      {
+        "stage": "CONNECTED",
+        "source": "mcp_registry",
+        "synthetic": 1,
+        "events": 1,
+        "clients": 1
+      },
+      {
+        "stage": "INVOCATION",
+        "source": "mcp_registry",
+        "synthetic": 1,
+        "events": 4,
+        "clients": 1
+      },
+      {
+        "stage": "REJECTED",
+        "source": "mcp_registry",
+        "synthetic": 1,
+        "events": 1,
+        "clients": 1
+      },
+      {
+        "stage": "TOKEN_ISSUED",
+        "source": "mcp_registry",
+        "synthetic": 1,
+        "events": 1,
+        "clients": 1
+      }
+    ],
+    "verified_external_users": 0,
+    "verified_installations": 0,
+    "verified_repeat_users": 0,
+    "verified_revenue_cents": 0
+  },
+  "payload_distribution:work:PHOENIX-02": {
+    "role": "BROKER: MCP and skill integrations",
+    "owner_instance": "phx-02-g1c1-2812acbf",
+    "at": 1792902530.8582523,
+    "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
+    "interfaces": [
+      "MCP Streamable HTTP",
+      "Agent Skills",
+      "JSON HTTP"
+    ],
+    "next_action": "Investigate observed integration failures"
+  },
+  "payload_distribution:work:PHOENIX-03": {
+    "role": "BOUNTY HUNTER: payable technical work",
+    "owner_instance": "phx-03-g1c1-6499be44",
+    "at": 1792902530.8583074,
+    "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
+    "existing_demand": [
+      {
+        "source": "buyer_intent",
+        "stage": "CLAIMED",
+        "opportunities": 3
+      },
+      {
+        "source": "buyer_intent",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_forum",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_forum",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_github",
+        "stage": "CLAIMED",
+        "opportunities": 11
+      },
+      {
+        "source": "pr8_github",
+        "stage": "REJECTED",
+        "opportunities": 11
+      },
+      {
+        "source": "pr8_github",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_handoff",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_handoff",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "tulsa",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "tulsa",
+        "stage": "REJECTED",
+        "opportunities": 6
+      }
+    ],
+    "next_action": "Verify funding and eligibility in existing opportunity workflow before claiming work"
+  },
+  "payload_distribution:work:PHOENIX-04": {
+    "role": "GUERRILLA: distribution",
+    "owner_instance": "phx-04-g1c1-c14cb368",
+    "at": 1792902530.858369,
+    "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
+    "registry_verified": true,
+    "next_action": "Monitor registry readback and service health"
+  },
+  "payload_distribution:work:PHOENIX-05": {
+    "role": "OPPORTUNIST: agent demand",
+    "owner_instance": "phx-05-g1c1-417c954a",
+    "at": 1792902530.8584044,
+    "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
+    "existing_demand": [
+      {
+        "source": "buyer_intent",
+        "stage": "CLAIMED",
+        "opportunities": 3
+      },
+      {
+        "source": "buyer_intent",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_forum",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_forum",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_github",
+        "stage": "CLAIMED",
+        "opportunities": 11
+      },
+      {
+        "source": "pr8_github",
+        "stage": "REJECTED",
+        "opportunities": 11
+      },
+      {
+        "source": "pr8_github",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_handoff",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "pr8_handoff",
+        "stage": "UNAVAILABLE",
+        "opportunities": 1
+      },
+      {
+        "source": "tulsa",
+        "stage": "CLAIMED",
+        "opportunities": 1
+      },
+      {
+        "source": "tulsa",
+        "stage": "REJECTED",
+        "opportunities": 6
+      }
+    ],
+    "next_action": "Compare independent public invocations and requested schema features"
+  }
+}

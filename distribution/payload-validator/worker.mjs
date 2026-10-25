@@ -1,5 +1,6 @@
 import { validate, LIMITS, InputError } from './validation.mjs';
 import server from './server.json' with { type: 'json' };
+import bazaarDraft from './bazaar-draft.json' with { type: 'json' };
 import skill from './skills/elyreon-payload-validator/SKILL.md';
 import gatewaySchema from './gateway-request.schema.json' with { type: 'json' };
 const enc = new TextEncoder();
@@ -100,7 +101,7 @@ export default {async fetch(req,env){
       if(p==='/schemas/gateway-request.json') return json(gatewaySchema);
       if(p==='/SKILL.md') return new Response(skill,{headers:{'content-type':'text/markdown; charset=utf-8'}});
       if(p==='/.well-known/ai-catalog.json') return json({name:'ELYREON Payload Validator',mcp:env.PUBLIC_ORIGIN+'/mcp',skill:env.PUBLIC_ORIGIN+'/SKILL.md',server:env.PUBLIC_ORIGIN+'/server.json',capabilities:[TOOL],payments_enabled:false});
-      if(p==='/x402-bazaar.json') return json({status:'PREPARED_NOT_ACTIVE',x402Version:2,resource:{url:env.PUBLIC_ORIGIN+'/validate',description:TOOL.description,mimeType:'application/json'},accepts:[],extensions:{bazaar:{info:{input:{type:'http',method:'POST',bodyType:'json',body:{schema:{type:'object'},payload:{}}},output:{type:'json',example:{valid:true,verdict:'PASS',errors:[]}}}}},blockers:['No approved receiving wallet, price, network or settlement flow; no payment activation authorized']});
+      if(p==='/x402-bazaar.json') return json(bazaarDraft);
       if(p==='/') return json({name:'ELYREON Payload Validator',capability:TOOL,install:{mcp:env.PUBLIC_ORIGIN+'/mcp',skill:env.PUBLIC_ORIGIN+'/SKILL.md',trial:env.PUBLIC_ORIGIN+'/trial'},privacy:'No payloads or schemas stored. Token hash, client-claimed source, test flag, stage, outcome and latency retained 30 days. Cloudflare processes network metadata.',payments_enabled:false});
     }
     return json({error:'Not found'},404);

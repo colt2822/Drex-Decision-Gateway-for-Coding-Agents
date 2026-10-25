@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sqlite3
 import time
-import urllib.request
+import httpx
 
 ROLES = {"PHOENIX-01": "CLOSER: conversion tracking", "PHOENIX-02": "BROKER: MCP and skill integrations",
          "PHOENIX-03": "BOUNTY HUNTER: payable technical work", "PHOENIX-04": "GUERRILLA: distribution",
@@ -16,10 +16,12 @@ ROLES = {"PHOENIX-01": "CLOSER: conversion tracking", "PHOENIX-02": "BROKER: MCP
 NAME = 'co.com.elyraon/payload-validator'
 
 def get(url, token=None):
-    headers={'User-Agent':'PHOENIX-Payload-Monitor/1'}
+    headers={}
     if token: headers['Authorization']='Bearer '+token
-    with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=3) as r:
-        return json.loads(r.read(500_000))
+    r=httpx.get(url,headers=headers,timeout=3)
+    r.raise_for_status()
+    if len(r.content)>500_000: raise ValueError('Response size exceeded')
+    return r.json()
 
 def run(config=None, db=None, transport=get, clock=time.time):
     config=config or json.loads((Path.home()/'.config/elyreon/payload-validator.json').read_text())
@@ -55,7 +57,9 @@ def run(config=None, db=None, transport=get, clock=time.time):
         result['registry_verified']=any(x['server']['name']==NAME and x['server']['version']=='1.0.0' for x in registry.get('servers',[]))
         result['usage']=[dict(r) for r in c.execute('SELECT stage,source,synthetic,count(*) events,count(DISTINCT client_id) clients FROM phoenix_payload_usage GROUP BY stage,source,synthetic')]
         result['public_repeat_tokens']=c.execute("SELECT count(*) FROM (SELECT client_id FROM phoenix_payload_usage WHERE synthetic=0 AND stage='INVOCATION' GROUP BY client_id HAVING count(*)>1)").fetchone()[0]
-        result['verified_external_users']=0 # No independent customer identity has been admitted.
+        result['verified_external_users']=c.execute("SELECT count(DISTINCT e.client_id) FROM phoenix_payload_evidence e JOIN phoenix_payload_usage u USING(client_id) WHERE e.kind='VERIFIED_EXTERNAL_IDENTITY' AND e.synthetic=0 AND u.synthetic=0 AND u.stage='INVOCATION'").fetchone()[0]
+        result['verified_installations']=c.execute("SELECT count(DISTINCT client_id) FROM phoenix_payload_evidence WHERE kind='INSTALLATION' AND synthetic=0").fetchone()[0]
+        result['verified_repeat_users']=c.execute("SELECT count(*) FROM (SELECT u.client_id FROM phoenix_payload_usage u WHERE u.synthetic=0 AND u.stage='INVOCATION' AND EXISTS (SELECT 1 FROM phoenix_payload_evidence e WHERE e.client_id=u.client_id AND e.synthetic=0 AND e.kind='VERIFIED_EXTERNAL_IDENTITY') GROUP BY u.client_id HAVING count(*)>1)").fetchone()[0]
         result['verified_revenue_cents']=0 # Payments disabled. Never create phoenix_outcome rows.
         result['provider_inference_cost_usd']=0
         result['hosting_cost_usd']=None # Requires provider billing evidence; request counts are not invoices.
@@ -67,7 +71,7 @@ def run(config=None, db=None, transport=get, clock=time.time):
             inst=c.execute("SELECT instance_id FROM phoenix_instance WHERE slot=? AND synthetic=0 AND status NOT IN ('SURVIVED','FAILED')",(slot,)).fetchone()
             if not inst: continue
             detail={'role':role,'owner_instance':inst[0],'at':clock(),'endpoint':origin}
-            if slot=='PHOENIX-01':detail.update(usage=result['usage'],verified_external_users=0,verified_revenue_cents=0)
+            if slot=='PHOENIX-01':detail.update(usage=result['usage'],verified_external_users=result['verified_external_users'],verified_installations=result['verified_installations'],verified_repeat_users=result['verified_repeat_users'],verified_revenue_cents=0)
             elif slot=='PHOENIX-02':detail.update(interfaces=['MCP Streamable HTTP','Agent Skills','JSON HTTP'],next_action='Investigate observed integration failures' if any(x['stage']=='REJECTED' for x in result['usage']) else 'Await independent integration evidence')
             elif slot=='PHOENIX-03':detail.update(existing_demand=demand,next_action='Verify funding and eligibility in existing opportunity workflow before claiming work')
             elif slot=='PHOENIX-04':detail.update(registry_verified=result['registry_verified'],next_action='Monitor registry readback and service health')
@@ -77,8 +81,8 @@ def run(config=None, db=None, transport=get, clock=time.time):
         kv('last_tick',result);kv('due',clock()+900);c.commit()
         # Bounded retention runs only after durable local ingestion.
         if transport is get:
-            req=urllib.request.Request(origin+'/operator/maintenance',data=b'{}',headers={'Authorization':'Bearer '+config['sync_token'],'Content-Type':'application/json'})
-            with urllib.request.urlopen(req,timeout=3) as r:r.read(1000)
+            r=httpx.post(origin+'/operator/maintenance',json={},headers={'Authorization':'Bearer '+config['sync_token']},timeout=3)
+            r.raise_for_status()
     except Exception as e:
         result['error']=type(e).__name__+': '+str(e)[:160]
         kv('last_error',result);kv('due',clock()+900);c.commit()

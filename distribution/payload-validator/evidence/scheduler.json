@@ -1,0 +1,16 @@
+{
+  "existing_timer_active": "active",
+  "post_command": "ExecStartPost={ path=/usr/bin/timeout ; argv[]=/usr/bin/timeout 20s /usr/bin/python3 /home/colton-mcclain/worktrees/phoenix-payload-validation/distribution/payload-validator/ops/phoenix_monitor.py ; ignore_errors=yes ; start_time=[Sat 2026-10-24 23:31:21 CDT] ; stop_time=[Sat 2026-10-24 23:31:21 CDT] ; pid=1678590 ; code=exited ; status=0 }",
+  "controller_result": "Result=success",
+  "five_agent_services": {
+    "1": "active",
+    "2": "active",
+    "3": "active",
+    "4": "active",
+    "5": "active"
+  },
+  "monitor_network_interval_seconds": 900,
+  "outbound_sender_invoked": false,
+  "new_timers": 0,
+  "new_agents": 0
+}

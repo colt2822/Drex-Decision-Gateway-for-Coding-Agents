@@ -1,0 +1,85 @@
+{
+  "receipt_correlation": true,
+  "events": [
+    {
+      "seq": 1,
+      "id": "745638a4-f8c3-4b5d-95c9-0d8ce3fce845",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "TOKEN_ISSUED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": null,
+      "elapsed_ms": null,
+      "at": 1792902480
+    },
+    {
+      "seq": 2,
+      "id": "f4f8e25f-b342-4d2d-8dd7-4219bfa1c544",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "CONNECTED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": null,
+      "elapsed_ms": null,
+      "at": 1792902480
+    },
+    {
+      "seq": 3,
+      "id": "b48b6248-75db-4bbd-a0c6-8a1e2e63bc37",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "INVOCATION",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": 1,
+      "elapsed_ms": 0,
+      "at": 1792902480
+    },
+    {
+      "seq": 4,
+      "id": "01dec055-e7b9-4469-a20f-c40496974718",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "INVOCATION",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": 0,
+      "elapsed_ms": 0,
+      "at": 1792902481
+    },
+    {
+      "seq": 5,
+      "id": "138463f1-4cc5-4891-8df1-14c242e95d71",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "REJECTED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": 0,
+      "elapsed_ms": 0,
+      "at": 1792902481
+    },
+    {
+      "seq": 6,
+      "id": "0fcd2f8f-0420-4926-b028-c6a4aa522cd3",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "INVOCATION",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": 1,
+      "elapsed_ms": 0,
+      "at": 1792902481
+    },
+    {
+      "seq": 7,
+      "id": "459e621e-96b3-4635-abc3-be9fa2e18dae",
+      "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+      "stage": "INVOCATION",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "valid": 1,
+      "elapsed_ms": 0,
+      "at": 1792902481
+    }
+  ],
+  "all_synthetic": true,
+  "external_customers": 0,
+  "verified_revenue_cents": 0
+}

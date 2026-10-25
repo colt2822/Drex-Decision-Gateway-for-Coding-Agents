@@ -1,0 +1,71 @@
+{
+  "synthetic": true,
+  "independent_customer": false,
+  "environment": {
+    "empty_home": true,
+    "mcp_sdk_only": true,
+    "elyreon_tools_preinstalled": false
+  },
+  "directory_discovery": {
+    "query": "payload-validator",
+    "name": "co.com.elyraon/payload-validator",
+    "version": "1.0.0",
+    "endpoint_from_registry": "https://elyreon-payload-validator.colt2822.workers.dev/mcp"
+  },
+  "direct_installation": {
+    "skill_installed": true,
+    "git_commit": "5668f5d044755aaa264d59c6c4840bfe1820b2ab",
+    "source": "anonymous public clone"
+  },
+  "client_id": "4fe400dd-a537-4a5b-ad53-6a7d3da790a7",
+  "connection": {
+    "server": "elyreon-payload-validator",
+    "protocol": "2025-11-25",
+    "tools": [
+      "validate_payload"
+    ]
+  },
+  "invocations": [
+    {
+      "verdict": "PASS",
+      "isError": false,
+      "receipt_id": "b48b6248-75db-4bbd-a0c6-8a1e2e63bc37",
+      "errors": []
+    },
+    {
+      "verdict": "FAIL",
+      "isError": false,
+      "receipt_id": "01dec055-e7b9-4469-a20f-c40496974718",
+      "errors": [
+        {
+          "code": "type",
+          "instance_path": "#",
+          "schema_path": "#/type",
+          "message": "Instance type \"string\" is invalid. Expected \"integer\"."
+        }
+      ]
+    },
+    {
+      "verdict": "REJECTED",
+      "isError": true,
+      "receipt_id": null,
+      "errors": [
+        {
+          "code": "unsupported_schema",
+          "message": "Unsupported keyword: $ref. References, regex, formats and combinators are disabled."
+        }
+      ]
+    },
+    {
+      "verdict": "PASS",
+      "isError": false,
+      "receipt_id": "0fcd2f8f-0420-4926-b028-c6a4aa522cd3",
+      "errors": []
+    }
+  ],
+  "public_gateway_schema_reuse": {
+    "verdict": "PASS",
+    "receipt_id": "459e621e-96b3-4635-abc3-be9fa2e18dae"
+  },
+  "status": "PASS"
+}

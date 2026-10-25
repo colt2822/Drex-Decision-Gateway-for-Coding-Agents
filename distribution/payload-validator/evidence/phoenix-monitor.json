@@ -1,0 +1,46 @@
+{
+  "at": 1792902530.342703,
+  "outreach": "STOP preserved; no sender invoked",
+  "paid_enabled": false,
+  "imported_events": 0,
+  "health": true,
+  "registry_verified": true,
+  "usage": [
+    {
+      "stage": "CONNECTED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "events": 1,
+      "clients": 1
+    },
+    {
+      "stage": "INVOCATION",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "events": 4,
+      "clients": 1
+    },
+    {
+      "stage": "REJECTED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "events": 1,
+      "clients": 1
+    },
+    {
+      "stage": "TOKEN_ISSUED",
+      "source": "mcp_registry",
+      "synthetic": 1,
+      "events": 1,
+      "clients": 1
+    }
+  ],
+  "public_repeat_tokens": 0,
+  "verified_external_users": 0,
+  "verified_installations": 0,
+  "verified_repeat_users": 0,
+  "verified_revenue_cents": 0,
+  "provider_inference_cost_usd": 0,
+  "hosting_cost_usd": null,
+  "attribution": "Token source is client-claimed; installation and identity require independent evidence."
+}
