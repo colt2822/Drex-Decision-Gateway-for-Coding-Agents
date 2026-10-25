@@ -1,0 +1,20 @@
+{
+  "final_deployment_health": {
+    "ok": true,
+    "capability": "validate_payload",
+    "version": "1.0.0",
+    "limits": {
+      "bytes": 32768,
+      "depth": 12,
+      "values": 2048,
+      "schemas": 128,
+      "errors": 1,
+      "read_ms": 3000
+    },
+    "paid_enabled": false
+  },
+  "bazaar_metadata_self_validated": true,
+  "payment_accepts": [],
+  "skill_matches_repository": true,
+  "registry_readback_verified": true
+}

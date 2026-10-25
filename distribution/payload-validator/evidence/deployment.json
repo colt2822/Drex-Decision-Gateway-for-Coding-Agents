@@ -1,14 +1,15 @@
 {
   "endpoint": "https://elyreon-payload-validator.colt2822.workers.dev",
   "worker": "elyreon-payload-validator",
-  "version_id": "8b0e1a5f-0b21-4e44-8f47-f97a9840d4fe",
-  "source_commit": "5668f5d044755aaa264d59c6c4840bfe1820b2ab",
+  "version_id": "2c19f3ba-5502-43f1-ac26-3d0013f19709",
+  "source_commit": "3cdda09",
   "plan": "Free (confirmed by API error 100328 for explicit CPU setting)",
   "paid_enabled": false,
   "payments_created": false,
   "provider_inference_calls": 0,
   "hosting_billing_cost_usd": null,
   "separation": "Dedicated Worker, dedicated D1, no custom routes, no other production bindings",
-  "rollback": "Disable only this workers.dev endpoint for first release; later wrangler rollback known-good-version",
-  "compatibility_limit": "Cloudflare 1010 rejects default Python urllib requests; standard MCP Python SDK/httpx and curl succeeded. No security setting changed."
+  "rollback": "wrangler rollback 8b0e1a5f-0b21-4e44-8f47-f97a9840d4fe (previous verified validator; retains earlier inactive metadata)",
+  "compatibility_limit": "Cloudflare 1010 rejects default Python urllib requests; standard MCP Python SDK/httpx and curl succeeded. No security setting changed.",
+  "initial_version_id": "8b0e1a5f-0b21-4e44-8f47-f97a9840d4fe"
 }

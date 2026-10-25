@@ -1,0 +1,27 @@
+{
+  "EXISTING_PUBLIC_ASSETS_REUSED": "Public Decision Gateway MIT repository, request schema, GitHub installation channel; Drex-MCP audited only (currently private).",
+  "FIRST_WORKING_CAPABILITY": "validate_payload: deterministic bounded JSON Schema 2020-12 subset; PASS/FAIL/REJECTED structured results.",
+  "EXTERNAL_ENDPOINT": "https://elyreon-payload-validator.colt2822.workers.dev",
+  "MCP_INTEGRATION": "Streamable HTTP /mcp; standard Python MCP SDK connection and invocation verified.",
+  "INSTALLABLE_SKILL": "/SKILL.md plus public repository skills/elyreon-payload-validator/SKILL.md; clean public git install verified.",
+  "DISCOVERY_LISTINGS": "Official MCP Registry co.com.elyraon/payload-validator@1.0.0 active; public GitHub asset; self-hosted ai-catalog. No additional third-party listings claimed.",
+  "CLEAN_AGENT_DISCOVERY": "PASS: synthetic empty-HOME environment, registry query payload-validator; no preinstalled ELYREON tools. No organic search-engine discovery claimed.",
+  "CLEAN_AGENT_INVOCATION": "PASS: standard MCP SDK; PASS, FAIL, REJECTED and repeated PASS; public Gateway choice schema direct HTTP PASS. This was a scripted controlled test, not an independent customer.",
+  "PHOENIX_ATTRIBUTION": "7 remote events / 4 successful validation-check receipts correlated to 1 synthetic client and imported into existing CRM; source mcp_registry client-claimed. All five roles recorded.",
+  "AUTONOMOUS_DISTRIBUTION": "Existing phoenix-controller.timer active; error-isolated post-command exit 0 verified; 15-minute monitoring, no new timer/agent/sender.",
+  "ACTUAL_EXTERNAL_USERS": 0,
+  "ACTUAL_REVENUE": "USD 0 for this capability; payments disabled. Inference cost USD 0; hosting billing cost UNKNOWN; confirmed Free plan, no upgrade or payment activation.",
+  "COMMITS": [
+    "5668f5d",
+    "3cdda09",
+    "Final evidence commit follows; resolve git HEAD"
+  ],
+  "DEPLOYMENT": "Cloudflare Worker version 2c19f3ba-5502-43f1-ac26-3d0013f19709 from source commit 3cdda09; dedicated D1; final health/metadata/skill smoke passed.",
+  "EXACT_BLOCKERS": [
+    "No blocker to shipped free validator.",
+    "Nace terms section 6.1(d) require a Separate Agreement for standalone Drex API/MCP resale; none found. No Drex inference exposed.",
+    "Cloudflare error 1010 blocks default Python urllib; standard MCP SDK/httpx/curl verified. No security bypass or settings change.",
+    "No independent customer, organic search indexing or additional third-party catalog listing verified.",
+    "Paid Bazaar listing/settlement intentionally inactive: no approved wallet, price, network or settlement flow."
+  ]
+}
