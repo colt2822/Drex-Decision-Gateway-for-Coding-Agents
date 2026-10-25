@@ -54,7 +54,7 @@ async function rpc(req,env,b) {
   if(b.method==='initialize') {
     const c=await client(req,env); await log(env,c,'CONNECTED');
     const requested=b.params?.protocolVersion;
-    return ok({protocolVersion:['2025-03-26','2025-06-18','2025-11-25'].includes(requested)?requested:'2025-11-25',capabilities:{tools:{}},serverInfo:{name:'elyreon-payload-validator',version:'1.0.0'},instructions:TOOL.description});
+    return ok({protocolVersion:['2025-03-26','2025-06-18','2025-11-25'].includes(requested)?requested:'2025-11-25',capabilities:{tools:{}},serverInfo:{name:'elyreon-payload-validator',version:'1.0.1'},instructions:TOOL.description});
   }
   if(b.method==='ping') return ok({});
   if(b.method==='tools/list') return ok({tools:[TOOL]});
@@ -70,7 +70,7 @@ export default {async fetch(req,env){
     const u=new URL(req.url),p=u.pathname;
     const ip=req.headers.get('cf-connecting-ip')||'local';
     if(!await env.EDGE_LIMIT.limit({key:ip}).then(x=>x.success)) fail('rate_limit','30 requests per minute per location',429);
-    if(p==='/health' && req.method==='GET') return json({ok:true,capability:'validate_payload',version:'1.0.0',limits:LIMITS,paid_enabled:false});
+    if(p==='/health' && req.method==='GET') return json({ok:true,capability:'validate_payload',version:'1.0.1',limits:LIMITS,paid_enabled:false});
     if(p==='/operator/events' && req.method==='GET') {
       if(!env.SYNC_TOKEN || req.headers.get('authorization')!==`Bearer ${env.SYNC_TOKEN}`) fail('unauthorized','Operator token required',401);
       const after=Number(u.searchParams.get('after')||0); if(!Number.isSafeInteger(after)||after<0) fail('invalid_cursor','Invalid cursor',400);
@@ -85,7 +85,7 @@ export default {async fetch(req,env){
       const b=await read(req); if(!b || Array.isArray(b) || typeof b!=='object') fail('invalid_input','Expected object',400);
       await quota(env,`enroll:${await sha(env.PRIVACY_SALT+ip)}`,5,3600);await quota(env,'global:enroll',100);
       const token='pv_'+crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-','');
-      const sources=['mcp_registry','github','skill_directory','direct','other'];
+      const sources=['mcp_registry','github','skill_directory','direct','codex','claude_code','opencode','cursor','hermes','n8n','langchain','crewai','openai_agents','vscode','other'];
       const c={id:crypto.randomUUID(),source:sources.includes(b.source)?b.source:'other',synthetic:Number(b.test===true || Boolean(env.TEST_TOKEN && req.headers.get('x-elyreon-test')===env.TEST_TOKEN))};
       await env.DB.prepare('INSERT INTO pv_client VALUES(?,?,?,?,?)').bind(c.id,await sha(token),c.source,c.synthetic,now()).run();
       await log(env,c,'TOKEN_ISSUED');return json({token,client_id:c.id,limits:{calls_per_day:20},expires_days:30,source_attribution:'client-claimed',synthetic:Boolean(c.synthetic)},201);
@@ -102,7 +102,7 @@ export default {async fetch(req,env){
       if(p==='/SKILL.md') return new Response(skill,{headers:{'content-type':'text/markdown; charset=utf-8'}});
       if(p==='/.well-known/ai-catalog.json') return json({name:'ELYREON Payload Validator',mcp:env.PUBLIC_ORIGIN+'/mcp',skill:env.PUBLIC_ORIGIN+'/SKILL.md',server:env.PUBLIC_ORIGIN+'/server.json',capabilities:[TOOL],payments_enabled:false});
       if(p==='/x402-bazaar.json') return json(bazaarDraft);
-      if(p==='/') return json({name:'ELYREON Payload Validator',capability:TOOL,install:{mcp:env.PUBLIC_ORIGIN+'/mcp',skill:env.PUBLIC_ORIGIN+'/SKILL.md',trial:env.PUBLIC_ORIGIN+'/trial'},privacy:'No payloads or schemas stored. Token hash, client-claimed source, test flag, stage, outcome and latency retained 30 days. Cloudflare processes network metadata.',payments_enabled:false});
+      if(p==='/') return json({name:'ELYREON Payload Validator',capability:TOOL,discoverability:'https://elyraon.com.co/agents/',quickstart:'https://elyraon.com.co/agents/integrations/',install:{mcp:env.PUBLIC_ORIGIN+'/mcp',skill:env.PUBLIC_ORIGIN+'/SKILL.md',trial:env.PUBLIC_ORIGIN+'/trial'},privacy:'No payloads or schemas stored. Token hash, client-claimed source, test flag, stage, outcome and latency retained 30 days. Cloudflare processes network metadata.',payments_enabled:false});
     }
     return json({error:'Not found'},404);
   }catch(e){return json(errorResult(e),e.status||503,e.status===429?{'retry-after':'3600'}:{});}

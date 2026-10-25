@@ -14,3 +14,5 @@ For MCP configure a Streamable HTTP server at `/mcp` with the same bearer header
 Limits: 32 KiB total request including RPC envelope, depth 12, 2048 values, 128 schema nodes, one validation error, 20 calls/token/day. Supported draft 2020-12 keywords: `$schema`, title, description, type, properties, required, additionalProperties, items, scalar enum/const, numeric bounds, min/maxLength, min/maxItems, min/maxProperties. Boolean schemas accepted. All other keywords are rejected; no references, regex, formats, combinators, defaults or coercion. On 429 wait until the next quota window.
 
 Example derived from the existing public Gateway request model: `/schemas/gateway-request.json`. It checks the documented choice-only subset; it does not call Drex or certify the entire Gateway API.
+
+Use before sending newly generated JSON to an API, then recheck after correcting the reported error. Persist and reuse the trial token for repeat calls. Client configurations and runnable examples: https://elyraon.com.co/agents/integrations/. For n8n export checks use https://elyraon.com.co/agents/SKILL.md.

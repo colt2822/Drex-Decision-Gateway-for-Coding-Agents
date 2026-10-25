@@ -54,12 +54,15 @@ def run(config=None, db=None, transport=get, clock=time.time):
         result['imported_events']=len(rows)
         result['health']=transport(origin+'/health')['ok']
         registry=transport('https://registry.modelcontextprotocol.io/v0.1/servers?search=co.com.elyraon%2Fpayload-validator')
-        result['registry_verified']=any(x['server']['name']==NAME and x['server']['version']=='1.0.0' for x in registry.get('servers',[]))
+        result['registry_verified']=any(x['server']['name']==NAME and x['server']['version']=='1.0.1' for x in registry.get('servers',[]))
         result['usage']=[dict(r) for r in c.execute('SELECT stage,source,synthetic,count(*) events,count(DISTINCT client_id) clients FROM phoenix_payload_usage GROUP BY stage,source,synthetic')]
         result['public_repeat_tokens']=c.execute("SELECT count(*) FROM (SELECT client_id FROM phoenix_payload_usage WHERE synthetic=0 AND stage='INVOCATION' GROUP BY client_id HAVING count(*)>1)").fetchone()[0]
         result['verified_external_users']=c.execute("SELECT count(DISTINCT e.client_id) FROM phoenix_payload_evidence e JOIN phoenix_payload_usage u USING(client_id) WHERE e.kind='VERIFIED_EXTERNAL_IDENTITY' AND e.synthetic=0 AND u.synthetic=0 AND u.stage='INVOCATION'").fetchone()[0]
         result['verified_installations']=c.execute("SELECT count(DISTINCT client_id) FROM phoenix_payload_evidence WHERE kind='INSTALLATION' AND synthetic=0").fetchone()[0]
         result['verified_repeat_users']=c.execute("SELECT count(*) FROM (SELECT u.client_id FROM phoenix_payload_usage u WHERE u.synthetic=0 AND u.stage='INVOCATION' AND EXISTS (SELECT 1 FROM phoenix_payload_evidence e WHERE e.client_id=u.client_id AND e.synthetic=0 AND e.kind='VERIFIED_EXTERNAL_IDENTITY') GROUP BY u.client_id HAVING count(*)>1)").fetchone()[0]
+        result['actual_external_installations']=None
+        result['actual_external_users']=None
+        result['observability']='Verified counts reflect admitted evidence only; unobserved installations and anonymous identity remain UNKNOWN.'
         result['verified_revenue_cents']=0 # Payments disabled. Never create phoenix_outcome rows.
         result['provider_inference_cost_usd']=0
         result['hosting_cost_usd']=None # Requires provider billing evidence; request counts are not invoices.

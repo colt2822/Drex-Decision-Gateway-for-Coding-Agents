@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "co.com.elyraon/payload-validator",
-  "title": "ELYREON Payload Validator",
-  "description": "Deterministic JSON API payload validation with bounded JSON Schema and structured pass/fail errors.",
-  "version": "1.0.0",
+  "title": "ELYREON JSON Schema Payload Validator",
+  "description": "JSON Schema validator for API payloads via MCP: bounded checks and structured pass/fail errors.",
+  "version": "1.0.1",
   "websiteUrl": "https://elyreon-payload-validator.colt2822.workers.dev",
   "repository": {
     "url": "https://github.com/colt2822/Drex-Decision-Gateway-for-Coding-Agents",
